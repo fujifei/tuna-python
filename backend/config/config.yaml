@@ -1,0 +1,15 @@
+# Tuna项目配置文件
+
+# 数据库配置
+database:
+  host: "127.0.0.1"
+  port: "6666"
+  user: "agile"
+  password: "agile"
+  name: "tuna"
+
+# 服务端口配置
+ports:
+  api: "8712"
+  admin: "8713"
+
