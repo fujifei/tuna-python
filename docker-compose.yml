@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: tuna-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: tuna
+      MYSQL_USER: tuna
+      MYSQL_PASSWORD: tuna123
+    ports:
+      - "6666:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coverage-network
+
+  # API 服务（用户端）
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tuna-api
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: tuna
+      DB_PASSWORD: tuna123
+      DB_NAME: tuna
+      API_PORT: 8712
+      # RabbitMQ 配置（用于 pyca 覆盖率上报，连接到 coverage-network 网段中的 RabbitMQ）
+      # 注意：请根据覆盖率平台中 RabbitMQ 服务的实际名称修改 RABBITMQ_HOST 和 MQ_HOST
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: coverage
+      RABBITMQ_PASSWORD: coverage123
+      RABBITMQ_VHOST: /
+      # pyca 可能使用的其他环境变量名
+      MQ_HOST: rabbitmq
+      MQ_PORT: 5672
+      MQ_USER: coverage
+      MQ_PASSWORD: coverage123
+      MQ_VHOST: /
+    ports:
+      - "8712:8712"
+    volumes:
+      - api_coverage:/app/coverage_data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "
+        if [ -d /app/.git ]; then
+          echo '代码已存在，拉取最新代码...' &&
+          cd /app &&
+          git pull origin master || git pull origin main
+        else
+          echo '克隆代码仓库...' &&
+          rm -rf /app/* /app/.* 2>/dev/null || true &&
+          git clone https://github.com/fujifei/tuna-python.git /app
+        fi &&
+        cd /app/backend &&
+        pip install -r requirements.txt &&
+        pip install git+https://github.com/fujifei/pyca.git@master &&
+        coverage run --source=. --data-file=/app/coverage_data/.coverage api/main.py
+      "
+    networks:
+      - coverage-network
+    restart: unless-stopped
+
+  # Admin 服务（管理端）
+  admin:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tuna-admin
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: tuna
+      DB_PASSWORD: tuna123
+      DB_NAME: tuna
+      ADMIN_PORT: 8713
+      # RabbitMQ 配置（用于 pyca 覆盖率上报，连接到 coverage-network 网段中的 RabbitMQ）
+      # 注意：请根据覆盖率平台中 RabbitMQ 服务的实际名称修改 RABBITMQ_HOST 和 MQ_HOST
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: coverage
+      RABBITMQ_PASSWORD: coverage123
+      RABBITMQ_VHOST: /
+      # pyca 可能使用的其他环境变量名
+      MQ_HOST: rabbitmq
+      MQ_PORT: 5672
+      MQ_USER: coverage
+      MQ_PASSWORD: coverage123
+      MQ_VHOST: /
+    ports:
+      - "8713:8713"
+    volumes:
+      - admin_coverage:/app/coverage_data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "
+        if [ -d /app/.git ]; then
+          echo '代码已存在，拉取最新代码...' &&
+          cd /app &&
+          git pull origin master || git pull origin main
+        else
+          echo '克隆代码仓库...' &&
+          rm -rf /app/* /app/.* 2>/dev/null || true &&
+          git clone https://github.com/fujifei/tuna-python.git /app
+        fi &&
+        cd /app/backend &&
+        pip install -r requirements.txt &&
+        pip install git+https://github.com/fujifei/pyca.git@master &&
+        coverage run --source=. --data-file=/app/coverage_data/.coverage admin/main.py
+      "
+    networks:
+      - coverage-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+    driver: local
+  api_coverage:
+    driver: local
+  admin_coverage:
+    driver: local
+
+networks:
+  coverage-network:
+    name: coverage-network
+    driver: bridge

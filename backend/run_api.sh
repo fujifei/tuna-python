@@ -9,6 +9,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # 激活虚拟环境
 source "$PROJECT_ROOT/venv/bin/activate"
 
+# 安装 pyca 插件
+pip install git+https://github.com/fujifei/pyca.git@master
+
 cd "$SCRIPT_DIR"
 
 # 读取配置获取端口号

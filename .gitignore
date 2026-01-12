@@ -46,3 +46,4 @@ wheels/
 *.sqlite
 *.sqlite3
 
+*.coverage

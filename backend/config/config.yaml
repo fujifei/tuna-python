@@ -4,8 +4,8 @@
 database:
   host: "127.0.0.1"
   port: "6666"
-  user: "agile"
-  password: "agile"
+  user: "tuna"
+  password: "tuna123"
   name: "tuna"
 
 # 服务端口配置
