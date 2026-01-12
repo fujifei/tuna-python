@@ -76,7 +76,7 @@ services:
         fi &&
         cd /app/backend &&
         pip install -r requirements.txt &&
-        pip install git+https://github.com/fujifei/pyca.git@master &&
+        pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/fujifei/pyca.git@master &&
         coverage run --source=. --data-file=/app/coverage_data/.coverage api/main.py
       "
     networks:
@@ -135,7 +135,7 @@ services:
         fi &&
         cd /app/backend &&
         pip install -r requirements.txt &&
-        pip install git+https://github.com/fujifei/pyca.git@master &&
+        pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/fujifei/pyca.git@master &&
         coverage run --source=. --data-file=/app/coverage_data/.coverage admin/main.py
       "
     networks:
