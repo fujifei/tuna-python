@@ -6,6 +6,7 @@ services:
     image: mysql:8.0
     container_name: tuna-mysql
     environment:
+      TZ: Asia/Shanghai
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tuna
       MYSQL_USER: tuna
@@ -30,6 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: tuna-api
     environment:
+      TZ: Asia/Shanghai
       DB_HOST: mysql
       DB_PORT: 3306
       DB_USER: tuna
@@ -64,8 +66,13 @@ services:
           git pull origin master || git pull origin main
         else
           echo '克隆代码仓库...' &&
-          rm -rf /app/* /app/.* 2>/dev/null || true &&
-          git clone https://github.com/fujifei/tuna-python.git /app
+          rm -rf /tmp/tuna-python 2>/dev/null || true &&
+          git clone https://github.com/fujifei/tuna-python.git /tmp/tuna-python &&
+          find /app -mindepth 1 -maxdepth 1 ! -name 'coverage_data' -exec rm -rf {} + 2>/dev/null || true &&
+          cp -r /tmp/tuna-python/* /app/ &&
+          cp -r /tmp/tuna-python/.git /app/ 2>/dev/null || true &&
+          cp -r /tmp/tuna-python/.gitignore /app/ 2>/dev/null || true &&
+          rm -rf /tmp/tuna-python
         fi &&
         cd /app/backend &&
         pip install -r requirements.txt &&
@@ -83,6 +90,7 @@ services:
       dockerfile: Dockerfile
     container_name: tuna-admin
     environment:
+      TZ: Asia/Shanghai
       DB_HOST: mysql
       DB_PORT: 3306
       DB_USER: tuna
@@ -117,8 +125,13 @@ services:
           git pull origin master || git pull origin main
         else
           echo '克隆代码仓库...' &&
-          rm -rf /app/* /app/.* 2>/dev/null || true &&
-          git clone https://github.com/fujifei/tuna-python.git /app
+          rm -rf /tmp/tuna-python 2>/dev/null || true &&
+          git clone https://github.com/fujifei/tuna-python.git /tmp/tuna-python &&
+          find /app -mindepth 1 -maxdepth 1 ! -name 'coverage_data' -exec rm -rf {} + 2>/dev/null || true &&
+          cp -r /tmp/tuna-python/* /app/ &&
+          cp -r /tmp/tuna-python/.git /app/ 2>/dev/null || true &&
+          cp -r /tmp/tuna-python/.gitignore /app/ 2>/dev/null || true &&
+          rm -rf /tmp/tuna-python
         fi &&
         cd /app/backend &&
         pip install -r requirements.txt &&

@@ -6,6 +6,7 @@ WORKDIR /app
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     git \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
@@ -22,6 +23,7 @@ RUN pip install --no-cache-dir coverage
 
 # 设置环境变量（可通过 docker-compose 覆盖）
 ENV PYTHONUNBUFFERED=1
+ENV TZ=Asia/Shanghai
 
 # 暴露端口（API 和 Admin 端口）
 EXPOSE 8712 8713
